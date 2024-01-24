@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 const (
@@ -15,7 +17,7 @@ const (
 	PlatformMacos       = "macos"
 	PlatformUikitformac = "uikitformac"
 
-	Host = "https://api.revenuecat.com"
+	defaultBaseURL = "https://api.revenuecat.com/"
 )
 
 const (
@@ -30,7 +32,9 @@ type Client struct {
 	ApiKeyV2 string
 	//https://app.revenuecat.com/projects/{ProjectID}/apps/{RevenueCatAppID}
 	PublicAPIKey string
-	HttpClient   *http.Client
+
+	BaseURL *url.URL
+	Client  *http.Client
 }
 
 func (c *Client) CallKeyVersion(keyVersion, method, path string, reqBody any, platform string, respBody any) error {
@@ -47,42 +51,74 @@ func (c *Client) CallKeyVersion(keyVersion, method, path string, reqBody any, pl
 }
 
 func (c *Client) call(apiKey, method, path string, reqBody any, platform string, respBody any) error {
-	if c.HttpClient == nil {
-		c.HttpClient = http.DefaultClient
+	req, err := c.NewRequest(apiKey, method, path, platform, reqBody)
+	if err != nil {
+		return err
+	}
+	_, err = c.Do(req, respBody)
+	return err
+}
+
+func (c *Client) NewRequest(apiKey, method, urlStr, platform string, reqBody any) (*http.Request, error) {
+	if c.BaseURL == nil {
+		c.BaseURL, _ = url.Parse(defaultBaseURL)
+	}
+
+	if !strings.HasSuffix(c.BaseURL.Path, "/") {
+		return nil, fmt.Errorf("BaseURL must have a trailing slash, but %q does not", c.BaseURL)
+	}
+	u, err := c.BaseURL.Parse(urlStr)
+	if err != nil {
+		return nil, err
 	}
 	var reqBodyJSON io.Reader
 	if reqBody != nil {
 		js, err := json.Marshal(reqBody)
 		if err != nil {
-			return fmt.Errorf("json.Marshal body: %v", err)
+			return nil, fmt.Errorf("json.Marshal body: %v", err)
 		}
 		reqBodyJSON = bytes.NewBuffer(js)
 	}
-	req, err := http.NewRequest(method, Host+path, reqBodyJSON)
+	req, err := http.NewRequest(method, u.String(), reqBodyJSON)
 	if err != nil {
-		return fmt.Errorf("http.NewRequest: %v", err)
+		return nil, err
 	}
 	req.Header.Add("Authorization", "Bearer "+apiKey)
 	req.Header.Add("Content-Type", "application/json")
 	if platform != "" {
 		req.Header.Add("X-Platform", platform)
 	}
-	resp, err := c.HttpClient.Do(req)
+	return req, nil
+}
+
+func (c *Client) Do(req *http.Request, d any) (resp *http.Response, err error) {
+	if c.Client == nil {
+		c.Client = http.DefaultClient
+	}
+	resp, err = c.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("c.http.Do: %v", err)
+		return
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
-		respErr := new(RespError)
-		err = json.NewDecoder(resp.Body).Decode(&respErr)
-		if err != nil {
-			return err
+	errorResponse := &RespError{Response: resp}
+	bodyDataByte, err := io.ReadAll(resp.Body)
+	if err == nil && bodyDataByte != nil {
+		if err := jsonUnmarshal(bodyDataByte, &errorResponse); err != nil {
+			return resp, &RespError{Response: resp}
 		}
-		return respErr
 	}
-	err = json.NewDecoder(resp.Body).Decode(respBody)
-	if err != nil {
-		return fmt.Errorf("json.NewDecoder.Decode: %v", err)
+	switch {
+	case resp.StatusCode > 199 && resp.StatusCode < 300:
+		switch v := d.(type) {
+		case nil:
+		case io.Writer:
+			_, err = io.Copy(v, resp.Body)
+		default:
+			err = jsonUnmarshal(bodyDataByte, d)
+		}
+		return
+	default:
+		err = errorResponse
+		return
 	}
-	return nil
 }

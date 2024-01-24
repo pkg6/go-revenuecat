@@ -2,6 +2,7 @@ package revenuecat
 
 import (
 	"encoding/json"
+	"io"
 	"net/url"
 	"time"
 )
@@ -33,4 +34,12 @@ func IsExpired(timestamp int64) bool {
 		return true
 	}
 	return false
+}
+
+func jsonUnmarshal(data []byte, v any) error {
+	decErr := json.Unmarshal(data, v)
+	if decErr == io.EOF {
+		return nil
+	}
+	return decErr
 }

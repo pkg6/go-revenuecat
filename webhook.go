@@ -11,6 +11,9 @@ type WebHookCallback func(resp *WebHookResponse) error
 
 func WebHookWithCallback(r *http.Request, callbacks ...WebHookCallback) error {
 	response := new(WebHookResponse)
+	if r.Body == nil {
+		return nil
+	}
 	if err := json.NewDecoder(r.Body).Decode(&response); err != nil {
 		return err
 	}
@@ -29,11 +32,11 @@ type WebHookResponse struct {
 
 type WebHookEvent struct {
 	//Initial Purchase
-	Id               string `json:"id"`
-	Type             string `json:"type"`
-	Store            string `json:"store"`
-	Environment      string `json:"environment"`
-	EventTimestampMs int64  `json:"event_timestamp_ms"`
+	Id               string `json:"id,omitempty"`
+	Type             string `json:"type,omitempty"`
+	Store            string `json:"store,omitempty"`
+	Environment      string `json:"environment,omitempty"`
+	EventTimestampMs int64  `json:"event_timestamp_ms,omitempty"`
 
 	ProductId      string `json:"product_id,omitempty"`
 	PeriodType     string `json:"period_type,omitempty"`
@@ -61,7 +64,7 @@ type WebHookEvent struct {
 	AppId string `json:"app_id,omitempty,omitempty"`
 
 	//Renewal
-	IsTrialConversion bool `json:"is_trial_conversion,omitempty,omitempty"`
+	IsTrialConversion bool `json:"is_trial_conversion,omitempty"`
 
 	//Cancellation && Trial Cancelled
 	CancelReason string `json:"cancel_reason,omitempty"`
@@ -94,6 +97,10 @@ type WebHookEvent struct {
 
 	//Trial Cancelled
 }
+type WebHookSubscriberAttributes struct {
+	UpdatedAtMs int64  `json:"updated_at_ms,omitempty"`
+	Value       string `json:"value,omitempty"`
+}
 
 func (w *WebHookEvent) SubscriberAttributesMap() map[string]*WebHookSubscriberAttributes {
 	ret := map[string]*WebHookSubscriberAttributes{}
@@ -103,9 +110,4 @@ func (w *WebHookEvent) SubscriberAttributesMap() map[string]*WebHookSubscriberAt
 		ret[i] = &subscriptions
 	}
 	return ret
-}
-
-type WebHookSubscriberAttributes struct {
-	UpdatedAtMs int64  `json:"updated_at_ms"`
-	Value       string `json:"value"`
 }
