@@ -10,17 +10,17 @@ var (
 )
 
 type GetAListOfProjectsResponse struct {
-	Items []*GetAListOfProjectsItem `json:"items"`
+	Items []*GetAListOfProjectsItem `json:"items,omitempty"`
 	//https://api.revnuecat.com/v2/projects?starting_after=proj82bc1db5&limit=1
-	NextPage string `json:"next_page"`
-	Object   string `json:"object"`
-	Url      string `json:"url"`
+	NextPage string `json:"next_page,omitempty"`
+	Object   string `json:"object,omitempty"`
+	Url      string `json:"url,omitempty"`
 }
 type GetAListOfProjectsItem struct {
-	CreatedAt int64  `json:"created_at"`
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Object    string `json:"object"`
+	CreatedAt int64  `json:"created_at,omitempty"`
+	Id        string `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Object    string `json:"object,omitempty"`
 }
 
 // GetAListOfProjects
@@ -30,8 +30,8 @@ type GetAListOfProjectsItem struct {
 //https://www.revenuecat.com/reference/list-projects
 func (c *Client) GetAListOfProjects(nextPage string) (resp *GetAListOfProjectsResponse, err error) {
 	var path string
-	if strings.HasPrefix(nextPage, Host) {
-		path = strings.ReplaceAll(nextPage, Host, "")
+	if strings.HasPrefix(nextPage, defaultBaseURL) {
+		path = strings.ReplaceAll(nextPage, defaultBaseURL, "")
 	} else {
 		path = PathQuery(getAListOfProjectsPath, map[string]string{
 			"starting_after": "",

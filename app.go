@@ -30,12 +30,12 @@ type AppsItem struct {
 	Type      string    `json:"type"`
 }
 
-// GetAlistOfApps
+// GetAListOfApps
 //https://www.revenuecat.com/reference/list-apps
-func (c *Client) GetAlistOfApps(nextPageOrProjectId string) (resp *GetAlistOfAppsResponse, err error) {
+func (c *Client) GetAListOfApps(nextPageOrProjectId string) (resp *GetAlistOfAppsResponse, err error) {
 	var path string
-	if strings.HasPrefix(nextPageOrProjectId, Host) {
-		path = strings.ReplaceAll(nextPageOrProjectId, Host, "")
+	if strings.HasPrefix(nextPageOrProjectId, defaultBaseURL) {
+		path = strings.ReplaceAll(nextPageOrProjectId, defaultBaseURL, "")
 	} else {
 		path = PathQuery(fmt.Sprintf(getAlistOfAppsPath, nextPageOrProjectId), map[string]string{
 			"starting_after": "",

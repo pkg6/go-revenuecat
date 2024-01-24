@@ -9,8 +9,8 @@ const (
 )
 
 type CreateAPurchaseRequest struct {
-	AppUserId                   string      `json:"app_user_id"`
-	FetchToken                  string      `json:"fetch_token"`
+	AppUserId                   string      `json:"app_user_id,omitempty"`
+	FetchToken                  string      `json:"fetch_token,omitempty"`
 	ProductId                   string      `json:"product_id,omitempty"`
 	Price                       float64     `json:"price,omitempty"`
 	Currency                    string      `json:"currency,omitempty"`
@@ -31,20 +31,20 @@ type CreateAPurchaseRequest struct {
 	Attributes                  *Attributes `json:"attributes,omitempty"`
 }
 type Attributes struct {
-	ProductId  string             `json:"product_id"`
-	Price      float64            `json:"price"`
-	Currency   string             `json:"currency"`
-	IsRestore  string             `json:"is_restore"`
-	Attributes *AttributesKeyName `json:"attributes"`
-	AppUserId  string             `json:"app_user_id"`
-	FetchToken string             `json:"fetch_token"`
+	ProductId  string             `json:"product_id,omitempty"`
+	Price      float64            `json:"price,omitempty"`
+	Currency   string             `json:"currency,omitempty"`
+	IsRestore  string             `json:"is_restore,omitempty"`
+	Attributes *AttributesKeyName `json:"attributes,omitempty"`
+	AppUserId  string             `json:"app_user_id,omitempty"`
+	FetchToken string             `json:"fetch_token,omitempty"`
 }
 type AttributesKeyName struct {
-	KeyName *KeyName `json:"key_name"`
+	KeyName *KeyName `json:"key_name,omitempty"`
 }
 type KeyName struct {
-	Value       string `json:"value"`
-	UpdatedAtMs string `json:"updated_at_ms"`
+	Value       string `json:"value,omitempty"`
+	UpdatedAtMs string `json:"updated_at_ms,omitempty"`
 }
 
 // CreateAPurchase

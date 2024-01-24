@@ -24,8 +24,8 @@ func (c *Client) GetOrCreateSubscriber(appUserId string, platforms ...string) (r
 }
 
 type SubscriberDeleteResponse struct {
-	AppUserId string `json:"app_user_id"`
-	Deleted   bool   `json:"deleted"`
+	AppUserId string `json:"app_user_id,omitempty"`
+	Deleted   bool   `json:"deleted,omitempty"`
 }
 
 // DeleteSubscriber
