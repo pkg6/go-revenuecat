@@ -43,8 +43,8 @@ const (
 )
 
 type GrantAPromotionalEntitlementRequest struct {
-	Duration    DurationValue `json:"duration"`
-	StartTimeMs int64         `json:"start_time_ms"`
+	Duration    DurationValue `json:"duration,omitempty"`
+	StartTimeMs int64         `json:"start_time_ms,omitempty"`
 }
 
 // GrantAPromotionalEntitlement
